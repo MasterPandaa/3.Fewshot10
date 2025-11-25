@@ -1,8 +1,9 @@
-import sys
 import random
+import sys
 import time
-import pygame
 from typing import List, Tuple
+
+import pygame
 
 # -----------------------------
 # Config & Constants
@@ -32,13 +33,13 @@ MAZE_LAYOUT: List[List[int]] = [
     [1, 2, 2, 2, 2, 2, 1],
     [1, 3, 1, 1, 1, 3, 1],
     [1, 2, 2, 2, 2, 2, 1],
-    [1, 1, 1, 1, 1, 1, 1]
+    [1, 1, 1, 1, 1, 1, 1],
 ]
 
 ROWS = len(MAZE_LAYOUT)
 COLS = len(MAZE_LAYOUT[0])
 TILE_SIZE = 60  # nice size on desktop
-MARGIN = 24     # margin around maze
+MARGIN = 24  # margin around maze
 SCREEN_WIDTH = COLS * TILE_SIZE + MARGIN * 2
 SCREEN_HEIGHT = ROWS * TILE_SIZE + MARGIN * 2 + 60  # extra for UI bar
 FPS = 60
@@ -53,17 +54,17 @@ POWER_DURATION = 7.0
 
 # Directions
 DIR_VECTORS = {
-    'STOP': (0, 0),
-    'UP': (0, -1),
-    'DOWN': (0, 1),
-    'LEFT': (-1, 0),
-    'RIGHT': (1, 0),
+    "STOP": (0, 0),
+    "UP": (0, -1),
+    "DOWN": (0, 1),
+    "LEFT": (-1, 0),
+    "RIGHT": (1, 0),
 }
 DIR_KEYS = {
-    pygame.K_UP: 'UP',
-    pygame.K_DOWN: 'DOWN',
-    pygame.K_LEFT: 'LEFT',
-    pygame.K_RIGHT: 'RIGHT',
+    pygame.K_UP: "UP",
+    pygame.K_DOWN: "DOWN",
+    pygame.K_LEFT: "LEFT",
+    pygame.K_RIGHT: "RIGHT",
 }
 
 
@@ -82,7 +83,7 @@ def is_wall(grid, col, row) -> bool:
 def available_dirs(grid, col, row) -> List[str]:
     options = []
     for name, (dx, dy) in DIR_VECTORS.items():
-        if name == 'STOP':
+        if name == "STOP":
             continue
         nc, nr = col + dx, row + dy
         if not is_wall(grid, nc, nr):
@@ -91,8 +92,8 @@ def available_dirs(grid, col, row) -> List[str]:
 
 
 def opposite_dir(dir_name: str) -> str:
-    mapping = {'UP': 'DOWN', 'DOWN': 'UP', 'LEFT': 'RIGHT', 'RIGHT': 'LEFT'}
-    return mapping.get(dir_name, 'STOP')
+    mapping = {"UP": "DOWN", "DOWN": "UP", "LEFT": "RIGHT", "RIGHT": "LEFT"}
+    return mapping.get(dir_name, "STOP")
 
 
 class Actor:
@@ -100,8 +101,8 @@ class Actor:
         self.col = start_col
         self.row = start_row
         self.x, self.y = grid_to_pixel(start_col, start_row)
-        self.dir = 'STOP'
-        self.next_dir = 'STOP'
+        self.dir = "STOP"
+        self.next_dir = "STOP"
         self.speed = 0
 
     def set_dir(self, direction: str):
@@ -153,10 +154,10 @@ class Pacman(Actor):
             cdx, cdy = DIR_VECTORS[self.dir]
             nc, nr = self.col + cdx, self.row + cdy
             if is_wall(grid, nc, nr):
-                self.dir = 'STOP'
+                self.dir = "STOP"
 
         dx, dy = DIR_VECTORS[self.dir]
-        if self.dir != 'STOP':
+        if self.dir != "STOP":
             self.move_pixel(dx, dy, self.speed)
 
         # Clamp to tile center when close
@@ -180,14 +181,14 @@ class Ghost(Actor):
         self.speed = self.base_speed
         self.color = color
         self.spawn = (start_col, start_row)
-        self.dir = random.choice(['UP', 'DOWN', 'LEFT', 'RIGHT'])
+        self.dir = random.choice(["UP", "DOWN", "LEFT", "RIGHT"])
         self.frightened = False
         self.eaten = False
 
     def reset(self):
         self.col, self.row = self.spawn
         self.x, self.y = grid_to_pixel(self.col, self.row)
-        self.dir = random.choice(['UP', 'DOWN', 'LEFT', 'RIGHT'])
+        self.dir = random.choice(["UP", "DOWN", "LEFT", "RIGHT"])
         self.frightened = False
         self.eaten = False
         self.speed = self.base_speed
@@ -219,18 +220,22 @@ class Ghost(Actor):
         pygame.draw.circle(surface, color, (px, py), radius)
         # eyes
         eye_offset = radius // 2
-        pygame.draw.circle(surface, WHITE, (px - eye_offset//2, py - eye_offset//2), 4)
-        pygame.draw.circle(surface, WHITE, (px + eye_offset//2, py - eye_offset//2), 4)
+        pygame.draw.circle(
+            surface, WHITE, (px - eye_offset // 2, py - eye_offset // 2), 4
+        )
+        pygame.draw.circle(
+            surface, WHITE, (px + eye_offset // 2, py - eye_offset // 2), 4
+        )
 
 
 class Game:
     def __init__(self):
         pygame.init()
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-        pygame.display.set_caption('Contoh Pacman')
+        pygame.display.set_caption("Contoh Pacman")
         self.clock = pygame.time.Clock()
-        self.font = pygame.font.SysFont('arial', 20)
-        self.big_font = pygame.font.SysFont('arial', 36, bold=True)
+        self.font = pygame.font.SysFont("arial", 20)
+        self.big_font = pygame.font.SysFont("arial", 36, bold=True)
 
         self.grid = [row[:] for row in MAZE_LAYOUT]
         self.score = 0
@@ -247,7 +252,9 @@ class Game:
         ]
 
         # Count pellets
-        self.total_pellets = sum(cell in (PELLET, POWER) for row in self.grid for cell in row)
+        self.total_pellets = sum(
+            cell in (PELLET, POWER) for row in self.grid for cell in row
+        )
 
     def reset(self):
         self.grid = [row[:] for row in MAZE_LAYOUT]
@@ -258,7 +265,9 @@ class Game:
         self.pacman = Pacman(1, 1)
         for g in self.ghosts:
             g.reset()
-        self.total_pellets = sum(cell in (PELLET, POWER) for row in self.grid for cell in row)
+        self.total_pellets = sum(
+            cell in (PELLET, POWER) for row in self.grid for cell in row
+        )
 
     def handle_input(self):
         for event in pygame.event.get():
@@ -343,7 +352,12 @@ class Game:
         surface.fill(BLACK)
 
         # Play area background
-        pygame.draw.rect(surface, GREY, (MARGIN - 8, MARGIN - 8, COLS * TILE_SIZE + 16, ROWS * TILE_SIZE + 16), border_radius=8)
+        pygame.draw.rect(
+            surface,
+            GREY,
+            (MARGIN - 8, MARGIN - 8, COLS * TILE_SIZE + 16, ROWS * TILE_SIZE + 16),
+            border_radius=8,
+        )
 
         # Draw tiles
         for r in range(ROWS):
@@ -405,8 +419,14 @@ class Game:
             msg2 = "Press R to Restart"
             surf = self.big_font.render(msg, True, WHITE)
             surf2 = self.font.render(msg2, True, WHITE)
-            self.screen.blit(surf, (SCREEN_WIDTH // 2 - surf.get_width() // 2, SCREEN_HEIGHT // 2 - 40))
-            self.screen.blit(surf2, (SCREEN_WIDTH // 2 - surf2.get_width() // 2, SCREEN_HEIGHT // 2 + 6))
+            self.screen.blit(
+                surf,
+                (SCREEN_WIDTH // 2 - surf.get_width() // 2, SCREEN_HEIGHT // 2 - 40),
+            )
+            self.screen.blit(
+                surf2,
+                (SCREEN_WIDTH // 2 - surf2.get_width() // 2, SCREEN_HEIGHT // 2 + 6),
+            )
 
         pygame.display.flip()
 
@@ -418,5 +438,5 @@ class Game:
             self.draw()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     Game().run()
